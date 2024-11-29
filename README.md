@@ -1,2 +1,2 @@
-# hagimule
+# Hagimule
 Projet de Données Réparties 2A ENSEEIHT
