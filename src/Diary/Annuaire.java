@@ -1,8 +1,13 @@
 package Diary;
 
-public interface Annuaire {
-    
-    boolean ajouter(Diary.Fichier file, String client);
+import Common.Fichier;
+import Common.ListClient;
 
-    Diary.ListClient getClients(String fileName);
+import java.rmi.Remote;
+
+public interface Annuaire extends Remote {
+    
+    boolean ajouter(Fichier file, int client);
+
+    ListClient getClients(String fileName);
 }

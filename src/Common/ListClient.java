@@ -1,10 +1,11 @@
-package Diary;
+package Common;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 public interface ListClient extends Remote {
     
-    public String getClients() throws RemoteException;
+    public ArrayList<Integer> getClients() throws RemoteException;
 
 }
