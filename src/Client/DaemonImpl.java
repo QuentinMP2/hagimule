@@ -60,23 +60,26 @@ public class DaemonImpl extends Thread implements Daemon {
             Requete r = (RequeteImpl)cis.readObject();
 
             /* recup le fichier */
-            FileInputStream fileInputStream = new FileInputStream("files/"+r.getFileName());
-            long fileSize = Files.size(Paths.get("files/" +r.getFileName()));
+            FileInputStream fileInputStream = new FileInputStream("Input/"+r.getFileName());
+            long fileSize = Files.size(Paths.get("Input/" +r.getFileName()));
 
             /* envoyer le fichier */
-            OutputStream cos = new ByteArrayOutputStream();
+            OutputStream cos = client.getOutputStream();
             long toSkip = (long) ((r.getPartie()-1)*floor((double) fileSize /r.getDecoupe()));
             /* vérifier qu'on a bien skip la bonne taille */
             long sizeSkip = 0;
             while (sizeSkip < toSkip) {
                 sizeSkip += fileInputStream.skip(toSkip - sizeSkip);
             }
-
+            System.out.println("filesize : " + fileSize + ", to skip : " + toSkip + ", to read : " + floor((double) fileSize /r.getDecoupe()));
             int sizeRead = 0;
-            byte[] boeuf = new byte[1024];
+            int currentRead;
+            byte[] boeuf = new byte[(int) fileSize];
             while ((sizeRead < floor((double) fileSize /r.getDecoupe())) && (sizeRead+toSkip < fileSize)) {
-                sizeRead += fileInputStream.read(boeuf);
-                cos.write(boeuf);
+                currentRead = fileInputStream.read(boeuf);
+                sizeRead += currentRead;
+                System.out.println(sizeRead + " Current : " + currentRead);
+                cos.write(boeuf, 0, currentRead);
             }
 
             fileInputStream.close();

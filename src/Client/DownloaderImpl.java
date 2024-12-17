@@ -1,9 +1,13 @@
 package Client;
 
 import Common.FichierImpl;
+import Common.Requete;
+import Common.RequeteImpl;
 import Diary.Annuaire;
 
+import java.io.*;
 import java.net.MalformedURLException;
+import java.net.Socket;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -23,8 +27,36 @@ public class DownloaderImpl {
                 "   add <filename>");
     }
 
-    public static void getFile(String filename) {
-        
+    public static void getFile(String filename, Annuaire annuaire) throws IOException, InterruptedException {
+        String[] lc = annuaire.getClients(filename).getClients().split(",");
+        for (String j : lc) {
+            System.out.println("recup sur le client : " +j);
+            int i = Integer.parseInt(j);
+            Socket s = new Socket("127.0.0.1", 8080);
+
+
+            InputStream input = s.getInputStream();
+            ObjectOutputStream output = new ObjectOutputStream(s.getOutputStream());
+
+
+            Requete r = new RequeteImpl(filename, lc.length, i, clientID);
+            output.writeObject(r);
+            String[] filenameL = filename.split("\\.");
+            String newname = filenameL[0] + "(" + i + ")." + filenameL[1];
+            sleep(3000);
+            FileOutputStream outputfile = new FileOutputStream("Output/"+newname);
+            byte[] boeuf = new byte[1000000];
+            int sizeread = 0;
+            while (sizeread != -1) {
+                sizeread = input.read(boeuf);
+                System.out.println("sizeread : " + sizeread);
+                if (sizeread != -1){
+                    outputfile.write(boeuf, 0, sizeread);
+                }
+            }
+            s.close();
+
+        }
     }
 
 
@@ -34,7 +66,7 @@ public class DownloaderImpl {
         try {
             Annuaire annuaire = (Annuaire) Naming.lookup(args[1]);
             getHelp();
-            while(true) {
+            while (true) {
                 System.out.print("> ");
                 String[] line = scanner.nextLine().split(" ");
                 if (Objects.equals(line[0], "help")) {
@@ -46,7 +78,7 @@ public class DownloaderImpl {
                 if (Objects.equals(line[0], "dl")) {
                     if (line.length == 2) {
                         if (annuaire.exist(new FichierImpl(line[1]))) {
-                            getFile(line[1]);
+                            getFile(line[1], annuaire);
                         } else {
                             System.out.println("fichier non trouvé");
                         }
@@ -62,7 +94,11 @@ public class DownloaderImpl {
         } catch (MalformedURLException e) {
             throw new RuntimeException("erreur url");
         } catch (RemoteException e) {
-            throw new RuntimeException("erreur remote");
+            throw new RuntimeException(e + " erreur remote");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } finally {
             scanner.close();
         }

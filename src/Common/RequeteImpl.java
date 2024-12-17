@@ -6,7 +6,7 @@ public class RequeteImpl implements Requete {
     private int partie;
     private int clientDemandeur;
 
-    private RequeteImpl(String fileName, int decoupe, int partie, int clientDemandeur) {
+    public RequeteImpl(String fileName, int decoupe, int partie, int clientDemandeur) {
         this.fileName = fileName;
         this.decoupe = decoupe;
         this.partie = partie;

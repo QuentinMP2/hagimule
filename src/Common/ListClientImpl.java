@@ -5,13 +5,16 @@ import java.util.ArrayList;
 
 public class ListClientImpl implements ListClient {
 
-    private ArrayList<Integer> listeClient;
+    private String listeClient;
 
     public ListClientImpl(ArrayList<Integer> listC){
-        this.listeClient = listC;
+        listeClient = "";
+        for (int i : listC) {
+            listeClient += (listC.getLast() == i)? i : i + ",";
+        }
     }
 
-    public ArrayList<Integer> getClients() throws RemoteException {
+    public String getClients() throws RemoteException {
         return listeClient;
     }
 }
