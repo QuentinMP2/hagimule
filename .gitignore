@@ -34,5 +34,6 @@ build
 # Ignore config files from Intellij-Idea
 .idea/
 
-# ignore input files
+# ignore input and output files
 src/Input/
+src/Output/
