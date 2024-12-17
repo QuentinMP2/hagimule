@@ -27,13 +27,21 @@ public class DaemonImpl extends Thread implements Daemon {
     public static void main(String[] args) {
         try {
             clientID = Integer.parseInt(args[0]);
-            ArrayList<String> fichierDispo = new ArrayList<>(args.length - 2);
+            ArrayList<String> fichierDispo = new ArrayList<>();
             Annuaire annuaire = (Annuaire) Naming.lookup(args[1]);
-            for (int i = 2; i < args.length - 2; i++) {
-                fichierDispo.set(i - 2, args[i]);
-                annuaire.ajouter(new FichierImpl(args[0]), clientID);
+            File directory = new File("Input");
+            System.out.println("Input directory :" + directory.getAbsolutePath());
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for(File f : files) {
+                    annuaire.ajouter(new FichierImpl(f.getName()), Integer.parseInt(args[0]));
+                    fichierDispo.add(f.getName());
+                }
+            } else {
+                System.out.println("erreur pas de fichier a ajouter au diary");
             }
 
+            System.out.println("fin ajout : " + fichierDispo);
             ServerSocket ss = new ServerSocket(8080);
             while (true) {
                 new DaemonImpl(ss.accept()).start();
