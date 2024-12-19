@@ -17,40 +17,25 @@ import java.util.ArrayList;
 import static java.lang.Math.floor;
 
 public class DaemonImpl extends Thread implements Daemon {
-    private static int clientID;
+
+    /** Identifiant du client. */
+    private int clientID;
+
+    /** URL de l'annuaire. */
+    private String url;
+
+    /** Socket du client. */
     private Socket client;
 
-    public DaemonImpl(Socket s) {
-        this.client = s;
-    }
-
-    public static void main(String[] args) {
-        try {
-            clientID = Integer.parseInt(args[0]);
-            ArrayList<String> fichierDispo = new ArrayList<>();
-            Annuaire annuaire = (Annuaire) Naming.lookup(args[1]);
-            File directory = new File("Input");
-            System.out.println("Input directory :" + directory.getAbsolutePath());
-            File[] files = directory.listFiles();
-            if (files != null) {
-                for(File f : files) {
-                    annuaire.ajouter(new FichierImpl(f.getName()), Integer.parseInt(args[0]));
-                    fichierDispo.add(f.getName());
-                }
-            } else {
-                System.out.println("erreur pas de fichier a ajouter au diary");
-            }
-
-            System.out.println("fin ajout : " + fichierDispo);
-            ServerSocket ss = new ServerSocket(8080);
-            while (true) {
-                new DaemonImpl(ss.accept()).start();
-            }
-        } catch (IOException e) {
-            System.out.println("Daemon IOException \n");
-        } catch (NotBoundException e) {
-            throw new RuntimeException("Mauvaise adresse annuaire");
-        }
+    /** Construit un Daemon.
+     * @param clientID identifiant du client
+     * @param url url de l'annuaire
+     * @param socket socket du client
+     */
+    public DaemonImpl(int clientID, String url, Socket socket) {
+        this.clientID = clientID;
+        this.url = url;
+        this.client = socket;
     }
 
     public void run() {
@@ -84,7 +69,6 @@ public class DaemonImpl extends Thread implements Daemon {
 
             fileInputStream.close();
             client.close();
-
 
         } catch (IOException e) {
             System.out.println("Daemon run IOException");

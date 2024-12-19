@@ -16,10 +16,22 @@ import java.util.Scanner;
 
 import static java.lang.Thread.sleep;
 
-public class DownloaderImpl {
-    private static int clientID;
+public class DownloaderImpl implements Downloader {
 
-    public static void getHelp(){
+    /** Identifiant du client. */
+    private int clientID;
+
+    /** URL de l'annuaire. */
+    private String url;
+
+    public DownloaderImpl(int clientID, String url) {
+        this.clientID = clientID;
+        this.url = url;
+        runDownloader();
+    }
+
+
+    public void getHelp(){
         System.out.println("Commandes possibles : \n" +
                 "   help\n" +
                 "   ls\n" +
@@ -27,7 +39,7 @@ public class DownloaderImpl {
                 "   add <filename>");
     }
 
-    public static void getFile(String filename, Annuaire annuaire) throws IOException, InterruptedException {
+    public void getFile(String filename, Annuaire annuaire) throws IOException, InterruptedException {
         String[] lc = annuaire.getClients(filename).getClients().split(",");
         for (String j : lc) {
             System.out.println("recup sur le client : " +j);
@@ -55,16 +67,13 @@ public class DownloaderImpl {
                 }
             }
             s.close();
-
         }
     }
 
 
-    public static void main(String[] args) {
-        clientID = Integer.parseInt(args[0]);
-        Scanner scanner = new Scanner(System.in);
-        try {
-            Annuaire annuaire = (Annuaire) Naming.lookup(args[1]);
+    private void runDownloader() {
+        try (Scanner scanner = new Scanner(System.in)) {
+            Annuaire annuaire = (Annuaire) Naming.lookup(url);
             getHelp();
             while (true) {
                 System.out.print("> ");
@@ -99,8 +108,6 @@ public class DownloaderImpl {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        } finally {
-            scanner.close();
         }
     }
 }
