@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.sql.Time;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
@@ -34,16 +35,6 @@ public class DownloaderImpl implements Downloader {
         runDownloader();
     }
 
-
-    public void getHelp(){
-        System.out.println("Commandes possibles : \n" +
-                "   help\n" +
-                "   ls\n" +
-                "   dl <filename>\n" +
-                "   add <filename>\n"+
-                "   to leave : ctrl + c");
-    }
-
     public void getFile(String filename, Annuaire annuaire) throws IOException {
 
         /**
@@ -63,7 +54,7 @@ public class DownloaderImpl implements Downloader {
             /**
              *  Taille du fichier cible
              */
-            private int fileSize;
+            private long fileSize;
             /**
              * Numéro de téléchargement à réaliser
              */
@@ -81,7 +72,7 @@ public class DownloaderImpl implements Downloader {
              * @param num
              * @param nbDL
              */
-            public DownloadThread(String fileName, String clientIP, int fileSize, int num, int nbDL) {
+            public DownloadThread(String fileName, String clientIP, long fileSize, int num, int nbDL) {
                 this.fileName = fileName;
                 this.clientIP = clientIP;
                 this.fileSize = fileSize;
@@ -104,11 +95,10 @@ public class DownloaderImpl implements Downloader {
                     ObjectOutputStream output = new ObjectOutputStream(s.getOutputStream());
 
                     // Nombre de bytes à ignorer dans le fichier
-                    int toSkip = (int) ((num-1) * floor((double) fileSize / (double)nbDL));
+                    long toSkip = (long) ((num-1) * floor((double) fileSize / (double)nbDL));
                     // Taille totale du fragment à télécharger
-                    int size = (num == nbDL) ? fileSize - toSkip : (int) floor((double) fileSize / (double)nbDL);
-
-                    System.out.println("to skip : " + toSkip + ", to read : " + size + "/" + fileSize);
+                    long size = (num == nbDL) ? (fileSize - toSkip) : (int) floor((double) fileSize / (double)nbDL);
+                    System.out.println("to skip : " + toSkip + ", to read : " + size + "/" + fileSize + ", " + num + "/" + nbDL);
 
                     // Requête à envoyer au daemon
                     Requete r = new RequeteImpl(fileName, toSkip, size, addrClient);
@@ -119,14 +109,18 @@ public class DownloaderImpl implements Downloader {
                     // Création du fichier pour enregistrer le fragment
                     FileOutputStream outputfile = new FileOutputStream("Output/"+ ((nbDL == 1) ? filename : newname));
                     // Buffer pour récupérer le fichier
-                    byte[] boeuf = new byte[size];
+                    byte[] boeuf = new byte[(int)(Integer.MAX_VALUE*0.0001)];
                     int sizeread = 0;
+                    int sizetot = 0;
                     while (sizeread != -1) {
-                        sizeread = input.read(boeuf);
+                        sizeread = input.read(boeuf, 0, (int)(Integer.MAX_VALUE*0.0001));
                         if (sizeread != -1){
+                            sizetot += sizeread;
                             outputfile.write(boeuf, 0, sizeread);
                         }
                     }
+                    System.out.println("size tot " + sizetot);
+
                     // On ferme la connection
                     s.close();
                     // On ferme le fichier d'écriture du fragment
@@ -137,12 +131,13 @@ public class DownloaderImpl implements Downloader {
                 }
             }
         }
-
+        long t1 = System.currentTimeMillis();
         // Liste des clients qui possèdent le fichier cible
         String[] lc = annuaire.getClients(filename).getClients().split(",");
         System.out.println(Arrays.toString(lc));
         // Récupération la taille du fichier
-        int fileSize = annuaire.getSize(filename);
+        long fileSize = annuaire.getSize(filename);
+        long t2 = System.currentTimeMillis();
         // Création une liste de thread de la bonne taille
         DownloadThread[] listeThreads = new DownloadThread[lc.length];
 
@@ -162,6 +157,7 @@ public class DownloaderImpl implements Downloader {
                 throw new RuntimeException("Erreur download on thread " + i + "/" + lc.length + " \n" + e);
             }
         }
+        long t3 = System.currentTimeMillis();
 
         /* reconstruction du fichier
         * → nécessaire seulement si on a plus de 1 téléchargement parallèle*/
@@ -171,20 +167,50 @@ public class DownloaderImpl implements Downloader {
             for (int i = 1; i <= lc.length; i++) {
                 // Récupération du fragment i
                 FileInputStream fileInputStream = new FileInputStream("Output/" + filename + "(" + i + ")");
-                int size = (int) Files.size(Paths.get("Output/" + filename + "(" + i + ")"));
-                byte[] boeuf = new byte[size];
-                int sizeRead = fileInputStream.read(boeuf, 0, size);
-                // Écriture du fragment i dans le fichier final
-                fichierFinal.write(boeuf, 0, size);
-                if (size != sizeRead) {
-                    throw new RuntimeException("pas bonne taille lu sur" + filename + "(" + i + ")");
+                long size = Files.size(Paths.get("Output/" + filename + "(" + i + ")"));
+
+                long sizeRead = 0;
+                int currentRead;
+                // On vérifie que la taille du fichier n'est pas trop grosse
+                if (size > Integer.MAX_VALUE*0.001) {
+                    byte[] boeuf = new byte[(int)(Integer.MAX_VALUE*0.0001)];
+                    /* Envoyer le fichier */
+                    while (sizeRead < size) {
+                        currentRead = fileInputStream.read(boeuf, 0, (int)(Integer.MAX_VALUE*0.0001));
+                        sizeRead += currentRead;
+                        // Écriture du fragment i dans le fichier final
+                        fichierFinal.write(boeuf, 0, currentRead);
+                    }
+                } else {
+                    int smallerSize = (int) ((size > 2000) ? size / 10 : size);
+                    byte[] boeuf = new byte[smallerSize];
+                    while (sizeRead < size) {
+                        currentRead = fileInputStream.read(boeuf, 0, smallerSize);
+                        sizeRead += currentRead;
+                        // Écriture du fragment i dans le fichier final
+                        fichierFinal.write(boeuf, 0, currentRead);
+                    }
                 }
                 fileInputStream.close();
             }
             fichierFinal.close();
         }
+        long t4 = System.currentTimeMillis();
+        System.out.println("Temps requête info fichier : " + (t2 - t1) +
+                "\nTemps récupération des différents fragments : " + (t3 - t2) +
+                "\nTemps reconstruction du fichier cible : " + (t4 - t3) +
+                "\nTemps total : " + (t4 - t1));
     }
 
+    public void getHelp(){
+        System.out.println("Commandes possibles : \n" +
+                "   help\n" +
+                "   ls\n" +
+                "   dl <filename>\n" +
+                "   add <filename>\n" +
+                "   size <filename>\n" +
+                "   to leave : ctrl + c");
+    }
 
     private void runDownloader() {
         try (Scanner scanner = new Scanner(System.in)) {
@@ -202,7 +228,7 @@ public class DownloaderImpl implements Downloader {
                 }
                 if (Objects.equals(line[0], "dl")) {
                     if (line.length == 2) {
-                        if (annuaire.exist(new FichierImpl(line[1]))) {
+                        if (annuaire.exist(line[1])) {
                             getFile(line[1], annuaire);
                         } else {
                             System.out.println("fichier non trouvé");

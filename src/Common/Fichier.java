@@ -6,6 +6,6 @@ public interface Fichier extends Serializable {
     
     String getNom();
 
-    int getSize();
+    long getSize();
 
 }

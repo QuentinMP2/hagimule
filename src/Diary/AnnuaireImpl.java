@@ -10,12 +10,13 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Objects;
 
 public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
 
     HashMap<String, ArrayList<String>> data;
-    HashMap<String, Integer> complData;
+    HashMap<String, Long> complData;
     ArrayList<String> connected;
 
     public AnnuaireImpl() throws RemoteException {
@@ -58,7 +59,7 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
     }
 
     @Override
-    public int getSize(String filename) throws RemoteException {
+    public long getSize(String filename) throws RemoteException {
         return complData.get(filename);
     }
 
@@ -66,30 +67,34 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
     public String listAllFile() throws RemoteException {
         StringBuilder s = new StringBuilder();
         for (String str: data.keySet()) {
-            s.append(str).append(" - ");
+            s.append(str).append(":").append(complData.get(str)).append(" - ");
         }
         return String.valueOf(s);
     }
 
     @Override
-    public Boolean exist(Fichier file) throws RemoteException {
-        return data.containsKey(file.getNom());
+    public Boolean exist(String fileName) throws RemoteException {
+        return data.containsKey(fileName);
     }
 
     @Override
     public void clientLeave(String clientIP) throws RemoteException {
         connected.remove(clientIP);
         System.out.println("Client : " + clientIP + " est parti");
+        ArrayList<String> toRemove = new ArrayList<>();
         for (String filename : data.keySet()) {
             ArrayList<String> listC = data.get(filename);
             listC.remove(clientIP);
             if (listC.isEmpty()) {
                 System.out.println("Le fichier " + filename + " n'est plus référencé");
-                data.remove(filename);
-                complData.remove(filename);
+                toRemove.add(filename);
             } else {
                 data.put(filename, listC);
             }
+        }
+        for (String filename : toRemove) {
+            data.remove(filename);
+            complData.remove(filename);
         }
     }
 

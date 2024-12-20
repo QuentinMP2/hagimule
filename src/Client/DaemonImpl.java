@@ -51,14 +51,30 @@ public class DaemonImpl extends Thread implements Daemon {
                 sizeSkip += fileInputStream.skip(r.getOffSet() - sizeSkip);
             }
 
-            int sizeRead = 0;
+            long sizeRead = 0;
             int currentRead;
-            byte[] boeuf = new byte[r.getSize()];
-            /* Envoyer le fichier */
-            while ((sizeRead < r.getSize())) {
-                currentRead = fileInputStream.read(boeuf);
-                sizeRead += currentRead;
-                cos.write(boeuf, 0, currentRead);
+            // On vérifie que la taille du fichier n'est pas trop grosse
+            if (r.getSize() > Integer.MAX_VALUE*0.001) {
+                int smallerSize = (int)(Integer.MAX_VALUE*0.0001);
+                byte[] boeuf = new byte[smallerSize];
+                /* Envoyer le fichier */
+                while (sizeRead < r.getSize()) {
+                    currentRead = fileInputStream.read(boeuf, 0, (int)((sizeRead+smallerSize > r.getSize()) ? r.getSize() - sizeRead : smallerSize));
+                    sizeRead += currentRead;
+                    cos.write(boeuf, 0, currentRead);
+                }
+                System.out.println("sizeRead : " + sizeRead);
+
+            } else {
+                int smallerSize = (int)((r.getSize() > 2000) ? r.getSize()/10 : r.getSize());
+                byte[] boeuf = new byte[smallerSize];
+                /* Envoyer le fichier */
+                while(sizeRead < r.getSize()) {
+                    currentRead = fileInputStream.read(boeuf, 0, (int)((sizeRead+smallerSize > r.getSize()) ? r.getSize() - sizeRead : smallerSize));
+                    sizeRead += currentRead;
+                    cos.write(boeuf, 0, currentRead);
+                }
+                System.out.println("sizeRead : " + sizeRead);
             }
 
             fileInputStream.close();

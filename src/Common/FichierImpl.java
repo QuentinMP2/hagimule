@@ -4,9 +4,9 @@ public class FichierImpl implements Fichier {
 
     private final String nom;
 
-    private final int size;
+    private final long size;
 
-    public FichierImpl(String nom, int size) {
+    public FichierImpl(String nom, long size) {
         this.nom = nom;
         this.size = size;
     }
@@ -20,7 +20,7 @@ public class FichierImpl implements Fichier {
         return nom;
     }
 
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 }

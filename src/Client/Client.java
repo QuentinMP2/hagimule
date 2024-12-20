@@ -42,7 +42,7 @@ public class Client extends Thread {
                 File[] files = directory.listFiles();
                 if (files != null) {
                     for (File f : files) {
-                        annuaire.ajouter(new FichierImpl(f.getName(),(int)Files.size(Paths.get("Input/" +f.getName()))), addrClient);
+                        annuaire.ajouter(new FichierImpl(f.getName(),Files.size(Paths.get("Input/" +f.getName()))), addrClient);
                         fichierDispo.add(f.getName());
                     }
                 } else {
@@ -75,7 +75,7 @@ public class Client extends Thread {
             } catch (NotBoundException e) {
                 throw new RuntimeException("Mauvaise adresse annuaire");
             } catch (RemoteException e) {
-                throw new RuntimeException("Erreur remote");
+                throw new RuntimeException("Annuaire pas trouvé (lancé ?)");
             } catch (MalformedURLException e) {
                 throw new RuntimeException("adresse malformée");
             } catch (IOException e) {

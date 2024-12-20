@@ -12,11 +12,11 @@ public interface Annuaire extends Remote {
 
     ListClient getClients(String fileName) throws RemoteException;
 
-    int getSize(String filename) throws RemoteException;
+    long getSize(String filename) throws RemoteException;
 
     String listAllFile() throws RemoteException;
 
-    Boolean exist(Fichier file) throws RemoteException;
+    Boolean exist(String fileName) throws RemoteException;
 
     void clientLeave(String clientIP) throws RemoteException;
 

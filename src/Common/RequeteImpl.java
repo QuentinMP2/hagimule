@@ -2,14 +2,14 @@ package Common;
 
 public class RequeteImpl implements Requete {
     private String fileName;
-    private int offSet;
-    private int size;
+    private long offSet;
+    private long size;
     private String clientDemandeur;
 
-    public RequeteImpl(String fileName, int decoupe, int partie, String clientDemandeur) {
+    public RequeteImpl(String fileName, long offSet, long size, String clientDemandeur) {
         this.fileName = fileName;
-        this.offSet = decoupe;
-        this.size = partie;
+        this.offSet = offSet;
+        this.size = size;
         this.clientDemandeur = clientDemandeur;
     }
 
@@ -17,11 +17,11 @@ public class RequeteImpl implements Requete {
         return fileName;
     }
 
-    public int getOffSet() {
+    public long getOffSet() {
         return offSet;
     }
 
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 

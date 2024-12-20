@@ -5,9 +5,9 @@ import java.io.Serializable;
 public interface Requete extends Serializable {
     String getFileName();
 
-    int getOffSet();
+    long getOffSet();
 
-    int getSize();
+    long getSize();
 
     String getClientDemandeur();
 }
