@@ -2,30 +2,31 @@ package Common;
 
 public class RequeteImpl implements Requete {
     private String fileName;
-    private int decoupe;
-    private int partie;
-    private int clientDemandeur;
+    private int offSet;
+    private int size;
+    private String clientDemandeur;
 
-    public RequeteImpl(String fileName, int decoupe, int partie, int clientDemandeur) {
+    public RequeteImpl(String fileName, int decoupe, int partie, String clientDemandeur) {
         this.fileName = fileName;
-        this.decoupe = decoupe;
-        this.partie = partie;
+        this.offSet = decoupe;
+        this.size = partie;
+        this.clientDemandeur = clientDemandeur;
     }
 
     public String getFileName() {
         return fileName;
     }
 
-    public int getDecoupe() {
-        return decoupe;
+    public int getOffSet() {
+        return offSet;
     }
 
-    public int getPartie() {
-        return partie;
+    public int getSize() {
+        return size;
     }
 
     @Override
-    public int getClientDemandeur() {
+    public String getClientDemandeur() {
         return clientDemandeur;
     }
 }

@@ -3,27 +3,36 @@ package Client;
 import Common.FichierImpl;
 import Diary.Annuaire;
 
-import javax.lang.model.element.NestingKind;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.ServerSocket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Client extends Thread {
+
+    public static boolean etat = true;
 
     public static void main(String[] args) {
         if (args.length != 2) {
             System.out.println("Erreur arguments ligne de commande : java Client <ClientID> <Url Diary>");
         } else {
-            int clientID = Integer.parseInt(args[0]);
+            Random randGen = new Random();
+            int port = randGen.nextInt(40000, 64000);
+            String addrClient = args[0] + ":" + port;
             String url = args[1];
 
             Thread downloaderThread = new Thread(() -> {
                 System.out.println("Downloader Thread running.");
-                new DownloaderImpl(clientID, url);
+                new DownloaderImpl(addrClient, url);
             });
+
 
             try {
                 ArrayList<String> fichierDispo = new ArrayList<>();
@@ -32,8 +41,8 @@ public class Client extends Thread {
                 System.out.println("Input directory :" + directory.getAbsolutePath());
                 File[] files = directory.listFiles();
                 if (files != null) {
-                    for(File f : files) {
-                        annuaire.ajouter(new FichierImpl(f.getName()), clientID);
+                    for (File f : files) {
+                        annuaire.ajouter(new FichierImpl(f.getName(),(int)Files.size(Paths.get("Input/" +f.getName()))), addrClient);
                         fichierDispo.add(f.getName());
                     }
                 } else {
@@ -41,18 +50,36 @@ public class Client extends Thread {
                 }
 
                 System.out.println("fin ajout : " + fichierDispo);
-                ServerSocket ss = new ServerSocket(8080);
+                ServerSocket ss = new ServerSocket(port);
+
+                //Prévenir le diary que le client se déconnecte
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            ss.close();
+                            etat = false;
+                            annuaire.clientLeave(addrClient);
+                        } catch (IOException e) {
+                            throw new RuntimeException("Erreur stop daemon");
+                        }
+                    }
+                });
 
                 // Lancement du Downloader
                 downloaderThread.start();
 
-                while (true) {
-                    new DaemonImpl(clientID, url, ss.accept()).start();
+                while (etat) {
+                    new DaemonImpl(addrClient, url, ss.accept()).start();
                 }
-            } catch (IOException e) {
-                System.out.println("Daemon IOException \n");
             } catch (NotBoundException e) {
                 throw new RuntimeException("Mauvaise adresse annuaire");
+            } catch (RemoteException e) {
+                throw new RuntimeException("Erreur remote");
+            } catch (MalformedURLException e) {
+                throw new RuntimeException("adresse malformée");
+            } catch (IOException e) {
+                System.out.print("");
             }
         }
     }

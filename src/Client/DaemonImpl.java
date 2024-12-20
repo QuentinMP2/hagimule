@@ -1,25 +1,19 @@
 package Client;
 
-import Common.FichierImpl;
 import Common.Requete;
 import Common.RequeteImpl;
-import Diary.Annuaire;
 
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
-import java.util.ArrayList;
 
 import static java.lang.Math.floor;
 
 public class DaemonImpl extends Thread implements Daemon {
 
     /** Identifiant du client. */
-    private int clientID;
+    private String clientIP;
 
     /** URL de l'annuaire. */
     private String url;
@@ -28,12 +22,12 @@ public class DaemonImpl extends Thread implements Daemon {
     private Socket client;
 
     /** Construit un Daemon.
-     * @param clientID identifiant du client
+     * @param clientIP identifiant du client
      * @param url url de l'annuaire
      * @param socket socket du client
      */
-    public DaemonImpl(int clientID, String url, Socket socket) {
-        this.clientID = clientID;
+    public DaemonImpl(String clientIP, String url, Socket socket) {
+        this.clientIP = clientIP;
         this.url = url;
         this.client = socket;
     }
@@ -46,24 +40,24 @@ public class DaemonImpl extends Thread implements Daemon {
 
             /* recup le fichier */
             FileInputStream fileInputStream = new FileInputStream("Input/"+r.getFileName());
-            long fileSize = Files.size(Paths.get("Input/" +r.getFileName()));
+            long fileSize = (long)Files.size(Paths.get("Input/" +r.getFileName()));
 
             /* envoyer le fichier */
             OutputStream cos = client.getOutputStream();
-            long toSkip = (long) ((r.getPartie()-1)*floor((double) fileSize /r.getDecoupe()));
+
             /* vérifier qu'on a bien skip la bonne taille */
             long sizeSkip = 0;
-            while (sizeSkip < toSkip) {
-                sizeSkip += fileInputStream.skip(toSkip - sizeSkip);
+            while (sizeSkip < r.getOffSet()) {
+                sizeSkip += fileInputStream.skip(r.getOffSet() - sizeSkip);
             }
-            System.out.println("filesize : " + fileSize + ", to skip : " + toSkip + ", to read : " + floor((double) fileSize /r.getDecoupe()));
+
             int sizeRead = 0;
             int currentRead;
-            byte[] boeuf = new byte[(int) fileSize];
-            while ((sizeRead < floor((double) fileSize /r.getDecoupe())) && (sizeRead+toSkip < fileSize)) {
+            byte[] boeuf = new byte[r.getSize()];
+            /* Envoyer le fichier */
+            while ((sizeRead < r.getSize())) {
                 currentRead = fileInputStream.read(boeuf);
                 sizeRead += currentRead;
-                System.out.println(sizeRead + " Current : " + currentRead);
                 cos.write(boeuf, 0, currentRead);
             }
 
