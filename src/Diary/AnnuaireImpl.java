@@ -110,8 +110,12 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
 
     public static void main(String[] args) throws RemoteException, AlreadyBoundException {
         try {
-            LocateRegistry.createRegistry(4000);
-            Naming.bind(args[0] + ":4000/diary", new AnnuaireImpl());
+            if (args.length != 1) {
+                System.out.println("Erreur nombre d'argument il manque l'adresse de l'annuaire"); 
+            } else {
+                LocateRegistry.createRegistry(4000);
+                Naming.bind(args[0] + ":4000/diary", new AnnuaireImpl());
+            }
         } catch (MalformedURLException e) {
             throw new RuntimeException("Mauvaise adresse annuaire");
         }
