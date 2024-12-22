@@ -1,8 +1,5 @@
 package Client;
 
-import Common.FichierImpl;
-import Diary.Annuaire;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -15,6 +12,9 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import Common.FichierImpl;
+import Diary.Annuaire;
+
 public class Client extends Thread {
 
     public static boolean etat = true;
@@ -26,7 +26,7 @@ public class Client extends Thread {
             Random randGen = new Random();
             int port = randGen.nextInt(40000, 64000);
             String addrClient = args[0] + ":" + port;
-            String url = args[1];
+            String url = args[1] + ":4000/diary";
 
             Thread downloaderThread = new Thread(() -> {
                 System.out.println("Downloader Thread running.");

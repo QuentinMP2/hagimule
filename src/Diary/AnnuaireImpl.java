@@ -1,17 +1,18 @@
 package Diary;
 
-import Common.Fichier;
-import Common.ListClient;
-import Common.ListClientImpl;
-
 import java.net.MalformedURLException;
-import java.rmi.*;
+import java.rmi.AlreadyBoundException;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Objects;
+
+import Common.Fichier;
+import Common.ListClient;
+import Common.ListClientImpl;
 
 public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
 
@@ -110,8 +111,7 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
     public static void main(String[] args) throws RemoteException, AlreadyBoundException {
         try {
             LocateRegistry.createRegistry(4000);
-            Naming.bind("//localhost:4000" + "/diary", new AnnuaireImpl());
-            //Naming.bind(args[0] + "4000", new AnnuaireImpl());
+            Naming.bind(args[0] + ":4000/diary", new AnnuaireImpl());
         } catch (MalformedURLException e) {
             throw new RuntimeException("Mauvaise adresse annuaire");
         }
