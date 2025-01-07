@@ -1,18 +1,14 @@
 package Client;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Random;
 
-import Common.FichierImpl;
 import Diary.Annuaire;
 
 public class Client extends Thread {
@@ -35,21 +31,8 @@ public class Client extends Thread {
 
 
             try {
-                ArrayList<String> fichierDispo = new ArrayList<>();
                 Annuaire annuaire = (Annuaire) Naming.lookup(url);
-                File directory = new File("Input");
-                System.out.println("Input directory :" + directory.getAbsolutePath());
-                File[] files = directory.listFiles();
-                if (files != null) {
-                    for (File f : files) {
-                        annuaire.ajouter(new FichierImpl(f.getName(),Files.size(Paths.get("Input/" +f.getName()))), addrClient);
-                        fichierDispo.add(f.getName());
-                    }
-                } else {
-                    System.out.println("erreur pas de fichier a ajouter au diary");
-                }
 
-                System.out.println("fin ajout : " + fichierDispo);
                 ServerSocket ss = new ServerSocket(port);
 
                 //Prévenir le diary que le client se déconnecte

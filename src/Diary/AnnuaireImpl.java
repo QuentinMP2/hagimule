@@ -55,7 +55,24 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
     }
 
     @Override
-    public ListClient getClients(String fileName) throws RemoteException{
+    public void supprimer(Fichier file, String client) throws RemoteException {
+
+        ArrayList<String> listC = data.get(file.getNom());
+        listC.remove(client);
+        if (listC.isEmpty()) {
+            System.out.println("Le fichier " + file.getNom() + " n'est plus référencé");
+            data.remove(file.getNom());
+            complData.remove(file.getNom());
+        } else {
+            System.out.println("Client " + client + " parti sur le fichier " + file.getNom());
+            data.put(file.getNom(), listC);
+        }
+
+    }
+
+
+    @Override
+    public ListClient getClients(String fileName) throws RemoteException {
         return new ListClientImpl(data.get(fileName));
     }
 
