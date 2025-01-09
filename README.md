@@ -17,6 +17,5 @@ After use :
 
 ## Tools used for the project
 - Java JDK 21
-- Gradle
-- Docker
 - IntelliJ Idea / VS Code software
+- AWS Virtual machines
