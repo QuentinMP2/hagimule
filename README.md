@@ -6,9 +6,9 @@
 ## How to use :
 - make build 
 - `cd src`
-- `java Diary.annuaireImpl <url for the diary>` the default port for the diary is 4000 => example for localhost : `java Diary.annuaireImpl "//localhost"`
+- `java Diary.annuaireImpl <url for the diary>` the default port for the diary is 4000 => example for localhost : `java Diary.annuaireImpl "localhost"`
 on another terminal go to src
-- `java Client.client <url of the diary>` the port is random so you can launch several on localhost => example for localhost : `java Client.Client "//localhost"` 
+- `java Client.client <url of the diary>` the port is random so you can launch several on localhost => example for localhost : `java Client.Client "localhost"` 
 the client currently parse a directory Input placed in src so place file you want to download here.
 
 

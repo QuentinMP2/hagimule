@@ -20,7 +20,7 @@ public class Client extends Thread {
         } else {
             Random randGen = new Random();
             String port = String.valueOf(randGen.nextInt(40000, 64000));
-            String url = args[0] + ":4000/diary";
+            String url = "//" + args[0] + ":4000/diary";
 
             Thread downloaderThread = new Thread(() -> {
                 System.out.println("Downloader Thread running.");
