@@ -5,6 +5,7 @@ import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +29,13 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
     }
 
     @Override
-    public boolean ajouter(Fichier file, String client) throws RemoteException {
+    public boolean ajouter(Fichier file, String port) throws RemoteException {
+        String client = "vide";
+        try {
+            client = getClientHost() + ":" + port;
+        } catch (Exception e) {
+            System.out.println("erreur getclienthost");
+        }
         if (!connected.contains(client)) {
             System.out.println("Nouveau client : " + client);
             connected.add(client);
@@ -55,8 +62,13 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
     }
 
     @Override
-    public void supprimer(Fichier file, String client) throws RemoteException {
-
+    public void supprimer(Fichier file, String port) throws RemoteException {
+        String client = "vide";
+        try {
+            client = getClientHost()+":"+port;
+        } catch (Exception e) {
+            System.out.println("erreur getclienthost");
+        }
         ArrayList<String> listC = data.get(file.getNom());
         listC.remove(client);
         if (listC.isEmpty()) {
@@ -64,7 +76,7 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
             data.remove(file.getNom());
             complData.remove(file.getNom());
         } else {
-            System.out.println("Client " + client + " parti sur le fichier " + file.getNom());
+                System.out.println("Client " + client + " parti sur le fichier " + file.getNom());
             data.put(file.getNom(), listC);
         }
 
@@ -83,6 +95,11 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
 
     @Override
     public String listAllFile() throws RemoteException {
+        try {
+            System.out.println(getClientHost());
+        } catch (Exception e) {
+            System.out.print("Nope");
+        }
         StringBuilder s = new StringBuilder();
         for (String str: data.keySet()) {
             s.append(str).append(":").append(complData.get(str)).append(" - ");
@@ -96,7 +113,13 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
     }
 
     @Override
-    public void clientLeave(String clientIP) throws RemoteException {
+    public void clientLeave(String port) throws RemoteException {
+        String clientIP = "vide";
+        try {
+            clientIP = getClientHost()+":"+ port;
+        } catch (Exception e) {
+            System.out.println("erreur getclienthost");
+        }
         connected.remove(clientIP);
         System.out.println("Client : " + clientIP + " est parti");
         ArrayList<String> toRemove = new ArrayList<>();
@@ -115,6 +138,17 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
             complData.remove(filename);
         }
     }
+
+    @Override
+    public String _getIP(String port) throws RemoteException {
+        try {
+            return getClientHost()+":"+ port;
+        } catch (Exception e) {
+            System.out.println("erreur getclienthost");
+            return null;
+        }
+    }
+
 
     @Override
     public String _list_conected() throws RemoteException {

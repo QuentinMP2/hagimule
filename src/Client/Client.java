@@ -6,7 +6,6 @@ import java.net.ServerSocket;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.Random;
 
 import Diary.Annuaire;
@@ -16,24 +15,23 @@ public class Client extends Thread {
     public static boolean etat = true;
 
     public static void main(String[] args) {
-        if (args.length != 2) {
-            System.out.println("Erreur arguments ligne de commande : java Client <ClientID> <Url Diary>");
+        if (args.length != 1) {
+            System.out.println("Erreur arguments ligne de commande : java Client <Url Diary>");
         } else {
             Random randGen = new Random();
-            int port = randGen.nextInt(40000, 64000);
-            String addrClient = args[0] + ":" + port;
-            String url = args[1] + ":4000/diary";
+            String port = String.valueOf(randGen.nextInt(40000, 64000));
+            String url = args[0] + ":4000/diary";
 
             Thread downloaderThread = new Thread(() -> {
                 System.out.println("Downloader Thread running.");
-                new DownloaderImpl(addrClient, url);
+                new DownloaderImpl(port, url);
             });
 
 
             try {
                 Annuaire annuaire = (Annuaire) Naming.lookup(url);
 
-                ServerSocket ss = new ServerSocket(port);
+                ServerSocket ss = new ServerSocket(Integer.parseInt(port));
 
                 //Prévenir le diary que le client se déconnecte
                 Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -42,7 +40,7 @@ public class Client extends Thread {
                         try {
                             ss.close();
                             etat = false;
-                            annuaire.clientLeave(addrClient);
+                            annuaire.clientLeave(port);
                         } catch (IOException e) {
                             throw new RuntimeException("Erreur stop daemon");
                         }
@@ -53,7 +51,7 @@ public class Client extends Thread {
                 downloaderThread.start();
 
                 while (etat) {
-                    new DaemonImpl(addrClient, url, ss.accept()).start();
+                    new DaemonImpl(port, url, ss.accept()).start();
                 }
             } catch (NotBoundException e) {
                 throw new RuntimeException("Mauvaise adresse annuaire");

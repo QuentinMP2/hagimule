@@ -8,9 +8,9 @@ import java.rmi.RemoteException;
 
 public interface Annuaire extends Remote {
 
-    boolean ajouter(Fichier file, String client) throws RemoteException;
+    boolean ajouter(Fichier file, String port) throws RemoteException;
 
-    void supprimer(Fichier file, String client) throws RemoteException;
+    void supprimer(Fichier file, String port) throws RemoteException;
 
     ListClient getClients(String fileName) throws RemoteException;
 
@@ -20,7 +20,9 @@ public interface Annuaire extends Remote {
 
     Boolean exist(String fileName) throws RemoteException;
 
-    void clientLeave(String clientIP) throws RemoteException;
+    String _getIP(String port) throws RemoteException;
+
+    void clientLeave(String port) throws RemoteException;
 
     String _list_conected() throws RemoteException;
 }

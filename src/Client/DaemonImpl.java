@@ -13,7 +13,7 @@ import static java.lang.Math.floor;
 public class DaemonImpl extends Thread implements Daemon {
 
     /** Identifiant du client. */
-    private String clientIP;
+    private String port;
 
     /** URL de l'annuaire. */
     private String url;
@@ -22,12 +22,12 @@ public class DaemonImpl extends Thread implements Daemon {
     private Socket client;
 
     /** Construit un Daemon.
-     * @param clientIP identifiant du client
+     * @param port identifiant du client
      * @param url url de l'annuaire
      * @param socket socket du client
      */
-    public DaemonImpl(String clientIP, String url, Socket socket) {
-        this.clientIP = clientIP;
+    public DaemonImpl(String port, String url, Socket socket) {
+        this.port = port;
         this.url = url;
         this.client = socket;
     }

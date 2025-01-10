@@ -24,13 +24,13 @@ import static java.lang.Math.floor;
 public class DownloaderImpl implements Downloader {
 
     /** Identifiant du client. */
-    private String addrClient;
+    private String port;
 
     /** URL de l'annuaire. */
     private String url;
 
-    public DownloaderImpl(String addrClient, String url) {
-        this.addrClient = addrClient;
+    public DownloaderImpl(String port, String url) {
+        this.port = port;
         this.url = url;
         runDownloader();
     }
@@ -65,6 +65,11 @@ public class DownloaderImpl implements Downloader {
             private int nbDL;
 
             /**
+             * le port du downloader
+             */
+            private String downloaderPort;
+
+            /**
              * Constructeur de DownloaderThread
              *
              * @param fileName
@@ -72,13 +77,15 @@ public class DownloaderImpl implements Downloader {
              * @param fileSize
              * @param num
              * @param nbDL
+             * @param downloaderPort
              */
-            public DownloadThread(String fileName, String clientIP, long fileSize, int num, int nbDL) {
+            public DownloadThread(String fileName, String clientIP, long fileSize, int num, int nbDL, String downloaderPort) {
                 this.fileName = fileName;
                 this.clientIP = clientIP;
                 this.fileSize = fileSize;
                 this.num = num;
                 this.nbDL = nbDL;
+                this.downloaderPort = downloaderPort;
             }
 
             @Override
@@ -102,7 +109,8 @@ public class DownloaderImpl implements Downloader {
                     System.out.println("to skip : " + toSkip + ", to read : " + size + "/" + fileSize + ", " + num + "/" + nbDL);
 
                     // Requête à envoyer au daemon
-                    Requete r = new RequeteImpl(fileName, toSkip, size, addrClient);
+                    String monIP = annuaire._getIP(downloaderPort);
+                    Requete r = new RequeteImpl(fileName, toSkip, size, monIP);
                     // Envoi de la requête
                     output.writeObject(r);
                     // Nom variant selon le numéro de fragment du fichier
@@ -145,7 +153,7 @@ public class DownloaderImpl implements Downloader {
         // Lancement les threads de téléchargements
         for (int i = 1; i <= lc.length; i++) {
             // Création des différents threads
-            listeThreads[i - 1] = new DownloadThread(filename, lc[i - 1], fileSize, i, lc.length);
+            listeThreads[i - 1] = new DownloadThread(filename, lc[i - 1], fileSize, i, lc.length, port);
             // Lancement des threads
             listeThreads[i - 1].start();
         }
@@ -251,7 +259,7 @@ public class DownloaderImpl implements Downloader {
                                     if (fichierUploades.contains(line[1])) {
                                         System.out.println(line[1] + "déjà enregistré");
                                     } else {
-                                        annuaire.ajouter(new FichierImpl(f.getName(), Files.size(Paths.get("Input/" + f.getName()))), addrClient);
+                                        annuaire.ajouter(new FichierImpl(f.getName(), Files.size(Paths.get("Input/" + f.getName()))), port);
                                         fichierUploades.add(f.getName());
                                     }
                                     existe = true;
@@ -273,7 +281,7 @@ public class DownloaderImpl implements Downloader {
                 } else if (Objects.equals(line[0], "rm")) {
                     if (line.length == 2) {
                         if (fichierUploades.contains(line[1])) {
-                            annuaire.supprimer(new FichierImpl(line[1]), addrClient);
+                            annuaire.supprimer(new FichierImpl(line[1]), port);
                             fichierUploades.remove(line[1]);
                             System.out.println("Fait");
                         } else {
