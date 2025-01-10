@@ -71,7 +71,7 @@ public class DaemonImpl extends Thread implements Daemon {
                 byte[] boeuf = new byte[smallerSize];
                 /* Envoyer le fichier */
                 while(sizeRead < r.getSize()) {
-                    currentRead = fileInputStream.read(boeuf, 0, (int)((sizeRead+smallerSize > r.getSize()) ? r.getSize() - sizeRead : smallerSize));
+                    currentRead = fileInputStream.read(boeuf, 0, (int)((sizeRead + smallerSize > r.getSize()) ? r.getSize() - sizeRead : smallerSize));
                     sizeRead += currentRead;
                     cos.write(boeuf, 0, currentRead);
                 }
@@ -84,7 +84,7 @@ public class DaemonImpl extends Thread implements Daemon {
         } catch (IOException e) {
             System.out.println("Daemon run IOException");
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Mauvaise reception de la requete");
+            throw new RuntimeException("Mauvaise réception de la requête");
         }
     }
 }

@@ -55,10 +55,12 @@ public class DownloaderImpl implements Downloader {
              * Taille du fichier cible
              */
             private long fileSize;
+
             /**
              * Numéro de téléchargement à réaliser
              */
             private int num;
+            
             /**
              * Nombre de téléchargements total à réaliser
              */
@@ -134,6 +136,7 @@ public class DownloaderImpl implements Downloader {
                 }
             }
         }
+
         long t1 = System.currentTimeMillis();
         // Liste des clients qui possèdent le fichier cible
         String req = annuaire.getClients(filename).getClients();
