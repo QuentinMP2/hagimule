@@ -142,7 +142,7 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
     @Override
     public String _getIP(String port) throws RemoteException {
         try {
-            return getClientHost()+":"+ port;
+            return getClientHost() + ":" + port;
         } catch (Exception e) {
             System.out.println("erreur getclienthost");
             return null;
@@ -165,7 +165,7 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
                 System.out.println("Erreur nombre d'argument il manque l'adresse de l'annuaire"); 
             } else {
                 LocateRegistry.createRegistry(4000);
-                Naming.bind(args[0] + ":4000/diary", new AnnuaireImpl());
+                Naming.bind("//" + args[0] + ":4000/diary", new AnnuaireImpl());
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException("Mauvaise adresse annuaire");
