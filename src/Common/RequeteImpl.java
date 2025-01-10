@@ -13,6 +13,12 @@ public class RequeteImpl implements Requete {
         this.clientDemandeur = clientDemandeur;
     }
 
+    public RequeteImpl(String fileName, long offSet, long size) {
+        this.fileName = fileName;
+        this.offSet = offSet;
+        this.size = size;
+    }
+
     public String getFileName() {
         return fileName;
     }

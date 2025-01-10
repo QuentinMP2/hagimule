@@ -6,7 +6,6 @@ import java.net.ServerSocket;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.util.Random;
 
 import Diary.Annuaire;
 
@@ -18,20 +17,18 @@ public class Client extends Thread {
         if (args.length != 1) {
             System.out.println("Erreur arguments ligne de commande : java Client <Url Diary>");
         } else {
-            Random randGen = new Random();
-            String port = String.valueOf(randGen.nextInt(40000, 64000));
             String url = "//" + args[0] + ":4000/diary";
-
-            Thread downloaderThread = new Thread(() -> {
-                System.out.println("Downloader Thread running.");
-                new DownloaderImpl(port, url);
-            });
-
-
+            String port;
             try {
                 Annuaire annuaire = (Annuaire) Naming.lookup(url);
 
-                ServerSocket ss = new ServerSocket(Integer.parseInt(port));
+                ServerSocket ss = new ServerSocket(0);
+                port = String.valueOf(ss.getLocalPort());
+
+                Thread downloaderThread = new Thread(() -> {
+                    System.out.println("Downloader Thread running.");
+                    new DownloaderImpl(annuaire, port);
+                });
 
                 //Prévenir le diary que le client se déconnecte
                 Runtime.getRuntime().addShutdownHook(new Thread() {

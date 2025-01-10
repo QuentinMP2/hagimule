@@ -23,15 +23,15 @@ import static java.lang.Math.floor;
 
 public class DownloaderImpl implements Downloader {
 
-    /** Identifiant du client. */
+    /** L'annuaire. */
+    private Annuaire annuaire;
+
+    /** le port de l'annuaire*/
     private String port;
 
-    /** URL de l'annuaire. */
-    private String url;
-
-    public DownloaderImpl(String port, String url) {
+    public DownloaderImpl(Annuaire annuaire, String port) {
+        this.annuaire = annuaire;
         this.port = port;
-        this.url = url;
         runDownloader();
     }
 
@@ -65,11 +65,6 @@ public class DownloaderImpl implements Downloader {
             private int nbDL;
 
             /**
-             * le port du downloader
-             */
-            private String downloaderPort;
-
-            /**
              * Constructeur de DownloaderThread
              *
              * @param fileName
@@ -77,15 +72,13 @@ public class DownloaderImpl implements Downloader {
              * @param fileSize
              * @param num
              * @param nbDL
-             * @param downloaderPort
              */
-            public DownloadThread(String fileName, String clientIP, long fileSize, int num, int nbDL, String downloaderPort) {
+            public DownloadThread(String fileName, String clientIP, long fileSize, int num, int nbDL) {
                 this.fileName = fileName;
                 this.clientIP = clientIP;
                 this.fileSize = fileSize;
                 this.num = num;
                 this.nbDL = nbDL;
-                this.downloaderPort = downloaderPort;
             }
 
             @Override
@@ -96,7 +89,9 @@ public class DownloaderImpl implements Downloader {
                 int port = Integer.parseInt(clientInfo[1]);
                 try {
                     // On se connecte au daemon cible
+                    System.out.println("avant socket");
                     Socket s = new Socket(ip, port);
+                    System.out.println("apres socket");
 
                     // Stream entrant et sortant
                     InputStream input = s.getInputStream();
@@ -109,8 +104,7 @@ public class DownloaderImpl implements Downloader {
                     System.out.println("to skip : " + toSkip + ", to read : " + size + "/" + fileSize + ", " + num + "/" + nbDL);
 
                     // Requête à envoyer au daemon
-                    String monIP = annuaire._getIP(downloaderPort);
-                    Requete r = new RequeteImpl(fileName, toSkip, size, monIP);
+                    Requete r = new RequeteImpl(fileName, toSkip, size);
                     // Envoi de la requête
                     output.writeObject(r);
                     // Nom variant selon le numéro de fragment du fichier
@@ -153,7 +147,7 @@ public class DownloaderImpl implements Downloader {
         // Lancement les threads de téléchargements
         for (int i = 1; i <= lc.length; i++) {
             // Création des différents threads
-            listeThreads[i - 1] = new DownloadThread(filename, lc[i - 1], fileSize, i, lc.length, port);
+            listeThreads[i - 1] = new DownloadThread(filename, lc[i - 1], fileSize, i, lc.length);
             // Lancement des threads
             listeThreads[i - 1].start();
         }
@@ -228,7 +222,6 @@ public class DownloaderImpl implements Downloader {
         ArrayList<String> fichierUploades = new ArrayList<>();
         File directoryInput;
         try (Scanner scanner = new Scanner(System.in)) {
-            Annuaire annuaire = (Annuaire) Naming.lookup(url);
 
             getHelp();
             while (Client.etat) {
@@ -312,8 +305,6 @@ public class DownloaderImpl implements Downloader {
                 }
             }
 
-        } catch (NotBoundException e) {
-            throw new RuntimeException("erreur adresse annuaire introuvable");
         } catch (MalformedURLException e) {
             throw new RuntimeException("erreur url");
         } catch (RemoteException e) {

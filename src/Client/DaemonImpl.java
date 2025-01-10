@@ -37,6 +37,7 @@ public class DaemonImpl extends Thread implements Daemon {
             ObjectInputStream cis = new ObjectInputStream(client.getInputStream());
             /* recup le nom de fichier, la proportion, le numero de la partie, et l'id du client auquel envoyer*/
             Requete r = (RequeteImpl)cis.readObject();
+            System.out.println(r.getSize()+ " " + r.getOffSet() + " " + r.getFileName());
 
             /* recup le fichier */
             FileInputStream fileInputStream = new FileInputStream("Input/"+r.getFileName());
