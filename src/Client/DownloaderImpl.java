@@ -10,8 +10,6 @@ import java.net.MalformedURLException;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +24,7 @@ public class DownloaderImpl implements Downloader {
     /** L'annuaire. */
     private Annuaire annuaire;
 
-    /** le port de l'annuaire*/
+    /** Le port de l'annuaire*/
     private String port;
 
     public DownloaderImpl(Annuaire annuaire, String port) {
@@ -85,15 +83,12 @@ public class DownloaderImpl implements Downloader {
 
             @Override
             public void run() {
-                System.out.println("recup sur le client : " + clientIP);
                 String[] clientInfo = clientIP.split(":");
                 String ip = clientInfo[0];
                 int port = Integer.parseInt(clientInfo[1]);
                 try {
                     // On se connecte au daemon cible
-                    System.out.println("avant socket");
                     Socket s = new Socket(ip, port);
-                    System.out.println("apres socket");
 
                     // Stream entrant et sortant
                     InputStream input = s.getInputStream();
@@ -103,33 +98,30 @@ public class DownloaderImpl implements Downloader {
                     long toSkip = (long) ((num - 1) * floor((double) fileSize / (double) nbDL));
                     // Taille totale du fragment à télécharger
                     long size = (num == nbDL) ? (fileSize - toSkip) : (int) floor((double) fileSize / (double) nbDL);
-                    System.out.println("to skip : " + toSkip + ", to read : " + size + "/" + fileSize + ", " + num + "/" + nbDL);
+                    //System.out.println("to skip : " + toSkip + ", to read : " + size + "/" + fileSize + ", " + num + "/" + nbDL);
 
                     // Requête à envoyer au daemon
                     Requete r = new RequeteImpl(fileName, toSkip, size);
                     // Envoi de la requête
                     output.writeObject(r);
                     // Nom variant selon le numéro de fragment du fichier
-                    String newname = fileName + "(" + num + ")";
+                    String newName = fileName + "(" + num + ")";
                     // Création du fichier pour enregistrer le fragment
-                    FileOutputStream outputfile = new FileOutputStream("Output/" + ((nbDL == 1) ? filename : newname));
+                    FileOutputStream outputFile = new FileOutputStream("Output/" + ((nbDL == 1) ? filename : newName));
                     // Buffer pour récupérer le fichier
                     byte[] boeuf = new byte[(int) (Integer.MAX_VALUE * 0.0001)];
                     int sizeread = 0;
-                    int sizetot = 0;
                     while (sizeread != -1) {
                         sizeread = input.read(boeuf, 0, (int) (Integer.MAX_VALUE * 0.0001));
                         if (sizeread != -1) {
-                            sizetot += sizeread;
-                            outputfile.write(boeuf, 0, sizeread);
+                            outputFile.write(boeuf, 0, sizeread);
                         }
                     }
-                    System.out.println("size tot " + sizetot);
 
                     // On ferme la connection
                     s.close();
                     // On ferme le fichier d'écriture du fragment
-                    outputfile.close();
+                    outputFile.close();
 
                 } catch (IOException e) {
                     throw new RuntimeException("Erreur socket client : " + clientIP + "\n" + e);
@@ -141,6 +133,8 @@ public class DownloaderImpl implements Downloader {
         // Liste des clients qui possèdent le fichier cible
         String req = annuaire.getClients(filename).getClients();
         String[] lc = req.split(",");
+        System.out.println("Clients trouvés : " + lc.length + " -> " + Arrays.toString(lc));
+
         // Récupération la taille du fichier
         long fileSize = annuaire.getSize(filename);
         long t2 = System.currentTimeMillis();
@@ -222,12 +216,12 @@ public class DownloaderImpl implements Downloader {
     }
 
     private void runDownloader() {
-        ArrayList<String> fichierUploades = new ArrayList<>();
+        ArrayList<String> fichierUploaded = new ArrayList<>();
         File directoryInput;
         try (Scanner scanner = new Scanner(System.in)) {
 
             getHelp();
-            while (Client.etat) {
+            while (Client.state) {
                 System.out.print("> ");
                 String[] line = scanner.nextLine().split(" ");
                 if (Objects.equals(line[0], "help")) {
@@ -252,11 +246,11 @@ public class DownloaderImpl implements Downloader {
                         if (files != null) {
                             for (File f : files) {
                                 if (Objects.equals(line[1], f.getName())) {
-                                    if (fichierUploades.contains(line[1])) {
-                                        System.out.println(line[1] + "déjà enregistré");
+                                    if (fichierUploaded.contains(line[1])) {
+                                        System.out.println(line[1] + " a déjà été enregistré");
                                     } else {
                                         annuaire.ajouter(new FichierImpl(f.getName(), Files.size(Paths.get("Input/" + f.getName()))), port);
-                                        fichierUploades.add(f.getName());
+                                        fichierUploaded.add(f.getName());
                                     }
                                     existe = true;
                                 }
@@ -276,10 +270,10 @@ public class DownloaderImpl implements Downloader {
                     }
                 } else if (Objects.equals(line[0], "rm")) {
                     if (line.length == 2) {
-                        if (fichierUploades.contains(line[1])) {
+                        if (fichierUploaded.contains(line[1])) {
                             annuaire.supprimer(new FichierImpl(line[1]), port);
-                            fichierUploades.remove(line[1]);
-                            System.out.println("Fait");
+                            fichierUploaded.remove(line[1]);
+                            System.out.println(fichierUploaded);
                         } else {
                             System.out.println("fichier non uploadé");
                         }
@@ -288,7 +282,7 @@ public class DownloaderImpl implements Downloader {
                         getHelp();
                     }
                 } else if (Objects.equals(line[0], "ref")) {
-                    System.out.println(fichierUploades);
+                    System.out.println(fichierUploaded);
                 } else if (Objects.equals(line[0], "dl")) {
                     if (line.length == 2) {
                         if (annuaire.exist(line[1])) {

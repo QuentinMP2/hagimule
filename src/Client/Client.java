@@ -11,7 +11,7 @@ import Diary.Annuaire;
 
 public class Client extends Thread {
 
-    public static boolean etat = true;
+    public static boolean state = true;
 
     public static void main(String[] args) {
         if (args.length != 1) {
@@ -36,7 +36,7 @@ public class Client extends Thread {
                     public void run() {
                         try {
                             ss.close();
-                            etat = false;
+                            state = false;
                             annuaire.clientLeave(port);
                         } catch (IOException e) {
                             throw new RuntimeException("Erreur stop daemon");
@@ -47,8 +47,8 @@ public class Client extends Thread {
                 // Lancement du Downloader
                 downloaderThread.start();
 
-                while (etat) {
-                    new DaemonImpl(port, url, ss.accept()).start();
+                while (state) {
+                    new DaemonImpl(ss.accept()).start();
                 }
             } catch (NotBoundException e) {
                 throw new RuntimeException("Mauvaise adresse annuaire");
@@ -61,5 +61,4 @@ public class Client extends Thread {
             }
         }
     }
-
 }

@@ -8,7 +8,7 @@ public class ListClientImpl implements ListClient {
 
     private final String lc;
 
-    public ListClientImpl(ArrayList<String> listC){
+    public ListClientImpl(ArrayList<String> listC) {
         StringBuilder listeClient;
 
         listeClient = new StringBuilder();
@@ -18,7 +18,7 @@ public class ListClientImpl implements ListClient {
         this.lc = String.valueOf(listeClient);
     }
 
-    public String getClients() throws RemoteException {
+    public String getClients() {
         return lc;
     }
 }

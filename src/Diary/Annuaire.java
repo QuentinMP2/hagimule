@@ -8,7 +8,7 @@ import java.rmi.RemoteException;
 
 public interface Annuaire extends Remote {
 
-    boolean ajouter(Fichier file, String port) throws RemoteException;
+    void ajouter(Fichier file, String port) throws RemoteException;
 
     void supprimer(Fichier file, String port) throws RemoteException;
 

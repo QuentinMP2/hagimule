@@ -5,7 +5,6 @@ import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
-import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,12 +28,12 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
     }
 
     @Override
-    public boolean ajouter(Fichier file, String port) throws RemoteException {
+    public void ajouter(Fichier file, String port) throws RemoteException {
         String client = "vide";
         try {
             client = getClientHost() + ":" + port;
         } catch (Exception e) {
-            System.out.println("erreur getclienthost");
+            System.out.println("erreur getClientHost");
         }
         if (!connected.contains(client)) {
             System.out.println("Nouveau client : " + client);
@@ -49,15 +48,12 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
                 listC.add(client);
             }
             data.put(file.getNom(), listC);
-            return false;
         } else {
-            System.out.println("Nouvelle cle " + file.getNom());
+            System.out.println("Nouvelle cle " + file.getNom() + " de taille " + file.getSize());
             ArrayList<String> listC = new ArrayList<>();
             listC.add(client);
             data.put(file.getNom(), listC);
-            System.out.println("Fichier de taille " + file.getSize());
             complData.put(file.getNom(), file.getSize());
-            return true;
         }
     }
 
@@ -76,8 +72,19 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
             data.remove(file.getNom());
             complData.remove(file.getNom());
         } else {
-                System.out.println("Client " + client + " parti sur le fichier " + file.getNom());
+            System.out.println("Client " + client + " parti sur le fichier " + file.getNom());
             data.put(file.getNom(), listC);
+        }
+        boolean estRef = false;
+        for(ArrayList<String> lc : data.values()) {
+            if (lc.contains(client)) {
+                estRef = true;
+                break;
+            }
+        }
+        if (!estRef) {
+            this.connected.remove(client);
+            System.out.println("Le client " + client + " ne référence plus de fichier");
         }
 
     }
@@ -118,7 +125,7 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
         try {
             clientIP = getClientHost()+":"+ port;
         } catch (Exception e) {
-            System.out.println("erreur getclienthost");
+            System.out.println("erreur getClientHost");
         }
         connected.remove(clientIP);
         System.out.println("Client : " + clientIP + " est parti");
@@ -144,7 +151,7 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
         try {
             return getClientHost() + ":" + port;
         } catch (Exception e) {
-            System.out.println("erreur getclienthost");
+            System.out.println("erreur getClientHost");
             return null;
         }
     }
@@ -166,6 +173,7 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
             } else {
                 LocateRegistry.createRegistry(4000);
                 Naming.bind("//" + args[0] + ":4000/diary", new AnnuaireImpl());
+                System.out.println("Annuaire écoute sur le port 4000");
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException("Mauvaise adresse annuaire");

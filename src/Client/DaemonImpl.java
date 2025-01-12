@@ -8,38 +8,25 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static java.lang.Math.floor;
-
 public class DaemonImpl extends Thread implements Daemon {
-
-    /** Identifiant du client. */
-    private String port;
-
-    /** URL de l'annuaire. */
-    private String url;
 
     /** Socket du client. */
     private Socket client;
 
     /** Construit un Daemon.
-     * @param port identifiant du client
-     * @param url url de l'annuaire
      * @param socket socket du client
      */
-    public DaemonImpl(String port, String url, Socket socket) {
-        this.port = port;
-        this.url = url;
+    public DaemonImpl(Socket socket) {
         this.client = socket;
     }
 
     public void run() {
         try {
             ObjectInputStream cis = new ObjectInputStream(client.getInputStream());
-            /* recup le nom de fichier, la proportion, le numero de la partie, et l'id du client auquel envoyer*/
+            /* récup le nom de fichier, la proportion, le numéro de la partie, et l'id du client auquel envoyer*/
             Requete r = (RequeteImpl)cis.readObject();
-            System.out.println(r.getSize()+ " " + r.getOffSet() + " " + r.getFileName());
 
-            /* recup le fichier */
+            /* récup le fichier */
             FileInputStream fileInputStream = new FileInputStream("Input/"+r.getFileName());
             long fileSize = (long)Files.size(Paths.get("Input/" +r.getFileName()));
 
@@ -64,7 +51,6 @@ public class DaemonImpl extends Thread implements Daemon {
                     sizeRead += currentRead;
                     cos.write(boeuf, 0, currentRead);
                 }
-                System.out.println("sizeRead : " + sizeRead);
 
             } else {
                 int smallerSize = (int)((r.getSize() > 2000) ? r.getSize()/10 : r.getSize());
@@ -75,7 +61,6 @@ public class DaemonImpl extends Thread implements Daemon {
                     sizeRead += currentRead;
                     cos.write(boeuf, 0, currentRead);
                 }
-                System.out.println("sizeRead : " + sizeRead);
             }
 
             fileInputStream.close();

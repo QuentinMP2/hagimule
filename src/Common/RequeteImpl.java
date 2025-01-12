@@ -1,9 +1,9 @@
 package Common;
 
 public class RequeteImpl implements Requete {
-    private String fileName;
-    private long offSet;
-    private long size;
+    private final String fileName;
+    private final long offSet;
+    private final long size;
     private String clientDemandeur;
 
     public RequeteImpl(String fileName, long offSet, long size, String clientDemandeur) {
@@ -31,7 +31,6 @@ public class RequeteImpl implements Requete {
         return size;
     }
 
-    @Override
     public String getClientDemandeur() {
         return clientDemandeur;
     }
