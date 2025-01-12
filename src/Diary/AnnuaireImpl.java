@@ -17,13 +17,13 @@ import Common.ListClientImpl;
 public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
 
     HashMap<String, ArrayList<String>> data;
-    HashMap<String, Long> complData;
+    HashMap<String, Long> compData;
     ArrayList<String> connected;
 
     public AnnuaireImpl() throws RemoteException {
         super();
         this.data = new HashMap<>();
-        this.complData = new HashMap<>();
+        this.compData = new HashMap<>();
         this.connected = new ArrayList<>();
     }
 
@@ -53,7 +53,7 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
             ArrayList<String> listC = new ArrayList<>();
             listC.add(client);
             data.put(file.getNom(), listC);
-            complData.put(file.getNom(), file.getSize());
+            compData.put(file.getNom(), file.getSize());
         }
     }
 
@@ -70,7 +70,7 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
         if (listC.isEmpty()) {
             System.out.println("Le fichier " + file.getNom() + " n'est plus référencé");
             data.remove(file.getNom());
-            complData.remove(file.getNom());
+            compData.remove(file.getNom());
         } else {
             System.out.println("Client " + client + " parti sur le fichier " + file.getNom());
             data.put(file.getNom(), listC);
@@ -86,9 +86,7 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
             this.connected.remove(client);
             System.out.println("Le client " + client + " ne référence plus de fichier");
         }
-
     }
-
 
     @Override
     public ListClient getClients(String fileName) throws RemoteException {
@@ -97,19 +95,15 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
 
     @Override
     public long getSize(String filename) throws RemoteException {
-        return complData.get(filename);
+        return compData.get(filename);
     }
 
     @Override
     public String listAllFile() throws RemoteException {
-        try {
-            System.out.println(getClientHost());
-        } catch (Exception e) {
-            System.out.print("Nope");
-        }
         StringBuilder s = new StringBuilder();
+        s.append("Disponible: ");
         for (String str: data.keySet()) {
-            s.append(str).append(":").append(complData.get(str)).append(" - ");
+            s.append(str).append(", ");
         }
         return String.valueOf(s);
     }
@@ -142,7 +136,7 @@ public class AnnuaireImpl extends UnicastRemoteObject implements Annuaire {
         }
         for (String filename : toRemove) {
             data.remove(filename);
-            complData.remove(filename);
+            compData.remove(filename);
         }
     }
 

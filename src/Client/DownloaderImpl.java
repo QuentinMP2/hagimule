@@ -42,36 +42,36 @@ public class DownloaderImpl implements Downloader {
             /**
              * Nom du fichier a télécharger
              */
-            private String fileName;
+            private final String fileName;
 
             /**
              * IP du client à qui demander le fichier
              */
-            private String clientIP;
+            private final String clientIP;
 
             /**
              * Taille du fichier cible
              */
-            private long fileSize;
+            private final long fileSize;
 
             /**
              * Numéro de téléchargement à réaliser
              */
-            private int num;
+            private final int num;
             
             /**
              * Nombre de téléchargements total à réaliser
              */
-            private int nbDL;
+            private final int nbDL;
 
             /**
              * Constructeur de DownloaderThread
              *
-             * @param fileName
-             * @param clientIP
-             * @param fileSize
-             * @param num
-             * @param nbDL
+             * @param fileName nom du fichier à dl
+             * @param clientIP ip du serveur
+             * @param fileSize taille fichier
+             * @param num numéro du fragment
+             * @param nbDL nombre total de fragments
              */
             public DownloadThread(String fileName, String clientIP, long fileSize, int num, int nbDL) {
                 this.fileName = fileName;
@@ -192,6 +192,10 @@ public class DownloaderImpl implements Downloader {
                     }
                 }
                 fileInputStream.close();
+                File fileToDelete = new File("Output/" + filename + "(" + i + ")");
+                if (!fileToDelete.delete()) {
+                    System.out.println("Erreur suppression du fichier " + filename +  "(" + i + ")");
+                }
             }
             fichierFinal.close();
         }
@@ -208,10 +212,10 @@ public class DownloaderImpl implements Downloader {
                 "   ls\n" +
                 "   ls -l (pour afficher les fichier en local)\n" +
                 "   ref\n" +
+                "   info <filename>\n" +
                 "   dl <filename>\n" +
                 "   add <filename>\n" +
                 "   rm <filename>\n" +
-                "   size <filename>\n" +
                 "   to leave : ctrl + c");
     }
 
@@ -233,21 +237,39 @@ public class DownloaderImpl implements Downloader {
                             File[] files = directoryInput.listFiles();
                             System.out.println(Arrays.toString(files).replace("Input/", "").replace("[", "").replace("]", ""));
                         } else {
-                            System.out.println("Mauvais argument");
+                            System.out.println("Mauvais argument.");
                         }
                     } else {
                         System.out.println(annuaire.listAllFile());
                     }
+                } else if (Objects.equals(line[0], "info")) {
+                    if (line.length == 2) {
+                        if (annuaire.exist(line[1])) {
+                            String[] ontFichier = annuaire.getClients(line[1]).getClients().split(",");
+                            double tailleRaw = (double)annuaire.getSize(line[1]);
+                            double valTaille = (tailleRaw/1000000000.0) > 1 ? (tailleRaw/1000000000.0) : ((tailleRaw/1000000.0) > 1 ? (tailleRaw/1000000.0) : ((tailleRaw/1000.0) > 1 ? (tailleRaw/1000.0) : tailleRaw));
+                            String tailleExt = (tailleRaw/1000000000.0) > 1 ? "Go" : ((tailleRaw/1000000.0) > 1 ? "Mo" : ((tailleRaw/1000.0) > 1 ? "Ko" : "o"));
+                            String taille = String.format(tailleExt.equals("o") ? "%.0f%s" : "%.3f%s", valTaille, tailleExt);
+                            System.out.println(line[1] + " : " + taille + ", référencé " + ontFichier.length + " fois." );
+                        } else {
+                            System.out.println("fichier non trouvé.");
+                        }
+                    } else {
+                        System.out.println("pas de fichier en argument.");
+                        getHelp();
+                    }
                 } else if (Objects.equals(line[0], "add")){
                     if (line.length == 2) {
                         boolean existe = false;
+                        boolean dejaEnregistre = false;
                         directoryInput = new File("Input");
                         File[] files = directoryInput.listFiles();
                         if (files != null) {
                             for (File f : files) {
                                 if (Objects.equals(line[1], f.getName())) {
                                     if (fichierUploaded.contains(line[1])) {
-                                        System.out.println(line[1] + " a déjà été enregistré");
+                                        System.out.println(line[1] + " a déjà été enregistré.");
+                                        dejaEnregistre = true;
                                     } else {
                                         annuaire.ajouter(new FichierImpl(f.getName(), Files.size(Paths.get("Input/" + f.getName()))), port);
                                         fichierUploaded.add(f.getName());
@@ -256,16 +278,17 @@ public class DownloaderImpl implements Downloader {
                                 }
                             }
                             if (!existe) {
-                                System.out.println(line[1] + " n'existe pas");
+                                System.out.println(line[1] + " n'existe pas.");
                                 System.out.println(Arrays.toString(files).replace("Input/", "").replace("[", "").replace("]", ""));
                             } else {
-                                System.out.println("fin ajout : " + line[1]);
+                                if (!dejaEnregistre)
+                                    System.out.println("fin ajout : " + line[1]);
                             }
                         } else {
-                            System.out.println("erreur pas de fichier a ajouter au diary");
+                            System.out.println("erreur pas de fichier a ajouter au diary.");
                         }
                     } else {
-                        System.out.println("pas de fichier en argument");
+                        System.out.println("pas de fichier en argument.");
                         getHelp();
                     }
                 } else if (Objects.equals(line[0], "rm")) {
@@ -275,10 +298,10 @@ public class DownloaderImpl implements Downloader {
                             fichierUploaded.remove(line[1]);
                             System.out.println(fichierUploaded);
                         } else {
-                            System.out.println("fichier non uploadé");
+                            System.out.println("fichier non uploadé.");
                         }
                     } else {
-                        System.out.println("pas de fichier en argument");
+                        System.out.println("pas de fichier en argument.");
                         getHelp();
                     }
                 } else if (Objects.equals(line[0], "ref")) {
@@ -288,10 +311,10 @@ public class DownloaderImpl implements Downloader {
                         if (annuaire.exist(line[1])) {
                             getFile(line[1], annuaire);
                         } else {
-                            System.out.println("fichier non trouvé");
+                            System.out.println("fichier non trouvé.");
                         }
                     } else {
-                        System.out.println("pas de fichier en argument");
+                        System.out.println("pas de fichier en argument.");
                         getHelp();
                     }
                 } else if (Objects.equals(line[0], "__getC")){

@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 public class DaemonImpl extends Thread implements Daemon {
 
     /** Socket du client. */
-    private Socket client;
+    private final Socket client;
 
     /** Construit un Daemon.
      * @param socket socket du client
