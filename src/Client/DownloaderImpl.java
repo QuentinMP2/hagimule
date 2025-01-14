@@ -140,7 +140,7 @@ public class DownloaderImpl implements Downloader {
         long t2 = System.currentTimeMillis();
 
         // Affichage du temps requête
-        System.out.println("Temps requête info fichier : " + (t2 - t1));
+        System.out.println("Temps requête info fichier : " + (t2 - t1) + " ms");
 
         // Création une liste de thread de la bonne taille
         DownloadThread[] listeThreads = new DownloadThread[lc.length];
@@ -164,7 +164,7 @@ public class DownloaderImpl implements Downloader {
         long t3 = System.currentTimeMillis();
 
         // Affichage du temps de récupération des différents fragments
-        System.out.println("Temps récupération des différents fragments : " + (t3 - t2));
+        System.out.println("Temps récupération des différents fragments : " + (t3 - t2) + " ms");
 
         /* reconstruction du fichier
          * → nécessaire seulement si on a plus de 1 téléchargement parallèle*/
@@ -207,8 +207,8 @@ public class DownloaderImpl implements Downloader {
             fichierFinal.close();
         }
         long t4 = System.currentTimeMillis();
-        System.out.println("Temps reconstruction du fichier cible : " + (t4 - t3) +
-            "\nTemps total : " + (t4 - t1)
+        System.out.println("Temps reconstruction du fichier cible : " + (t4 - t3) + " ms" +
+            "\nTemps total : " + (t4 - t1) + " ms"
         );
     }
 
